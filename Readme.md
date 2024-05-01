@@ -1,6 +1,10 @@
 # HOT Priority Regions and Impact Areas Stats
 
-This is a Streamlit application that fetches and displays statistics related to HOT (Humanitarian OpenStreetMap Team) priority regions and impact areas. The application allows users to select hashtags, date ranges, intervals, priority regions, and impact areas, and then retrieves the corresponding data from the Ohsome API. https://stats.now.ohsome.org/
+This is a Streamlit application that fetches and displays statistics related to HOT (Humanitarian OpenStreetMap Team) priority regions and impact areas. The application allows users to select multiple hashtags, date ranges, intervals, priority regions, and impact areas, and then retrieves the corresponding data from the Ohsome API. https://stats.now.ohsome.org/
+
+<img width="756" alt="image" src="https://github.com/kshitijrajsharma/ohsome-now-stats-multiple-hashtags/assets/36752999/b2f114ec-8fe7-443b-b426-e83e4bbea6dc">
+
+
 
 ## Prerequisites
 
