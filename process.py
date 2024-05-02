@@ -33,80 +33,90 @@ IMPACT_AREAS = {
 def fetch_data(
     hashtags, start_date, end_date, interval, selected_hubs, selected_impact_areas
 ):
-    countries = ",".join([",".join(HUBS[hub].split(",")) for hub in selected_hubs])
-    topics = ",".join(
-        ["_".join(IMPACT_AREAS[area].split("_")) for area in selected_impact_areas]
-    )
-    selected_hubs_str = ",".join(selected_hubs)
-    selected_impact_areas_str = ",".join(selected_impact_areas)
-
-    interval_option = next(
-        (option for option in get_interval_options() if option["value"] == interval),
-        {"value": "P1M"},
-    )
-    interval_str = interval_option["value"]
-    start_date_obj = datetime.combine(start_date, datetime.min.time())
-    end_date_obj = datetime.combine(end_date, datetime.max.time())
-
     data_frames = []
     topic_data_frames = []
     summary_data_frames = []
+    topics = ",".join(
+        ["_".join(IMPACT_AREAS[area].split("_")) for area in selected_impact_areas]
+    )
+    start_date_obj = datetime.combine(start_date, datetime.min.time())
+    end_date_obj = datetime.combine(end_date, datetime.max.time())
 
-    for hashtag in hashtags:
-        # General stats
-        url = f"https://stats.now.ohsome.org/api/stats/{hashtag}/interval?startdate={start_date_obj.isoformat()}Z&enddate={end_date_obj.isoformat()}Z&interval={interval_str}&countries={countries}"
-        response = requests.get(url)
-        df_data = response.json()["result"]
-        df = pd.DataFrame(df_data)
-        df["hashtag"] = hashtag
-        df["region"] = selected_hubs_str
-        df["impact_area"] = selected_impact_areas_str
-        data_frames.append(df)
+    for hub in selected_hubs:
+        countries = HUBS[hub].split(",")
+        countries_str = ",".join(countries)
+        selected_hubs_str = hub
+        selected_impact_areas_str = ",".join(selected_impact_areas)
 
-        # Topic-wise stats
-        url_topics = f"https://stats.now.ohsome.org/api/topic/{topics}/interval?hashtag={hashtag}&startdate={start_date_obj.isoformat()}Z&enddate={end_date_obj.isoformat()}Z&countries={countries}&interval={interval_str}"
-        response_topics = requests.get(url_topics)
-        transformed_data = {}
-        for topic, topic_data in response_topics.json()["result"].items():
-            topic_values = topic_data["value"]
-            start_date = topic_data["startDate"]
-            end_date = topic_data["endDate"]
-            transformed_data[topic] = topic_values
-            transformed_data["startDate"] = start_date
-            transformed_data["endDate"] = end_date
+        interval_option = next(
+            (
+                option
+                for option in get_interval_options()
+                if option["value"] == interval
+            ),
+            {"value": "P1M"},
+        )
+        interval_str = interval_option["value"]
 
-        df_topic = pd.DataFrame(transformed_data)
-        topic_data_frames.append(df_topic)
+        for hashtag in hashtags:
+            # General stats
+            url = f"https://stats.now.ohsome.org/api/stats/{hashtag}/interval?startdate={start_date_obj.isoformat()}Z&enddate={end_date_obj.isoformat()}Z&interval={interval_str}&countries={countries_str}"
+            response = requests.get(url)
+            df_data = response.json()["result"]
+            df = pd.DataFrame(df_data)
+            df["hashtag"] = hashtag
+            df["region"] = selected_hubs_str
+            df["impact_area"] = selected_impact_areas_str
+            data_frames.append(df)
 
-        # Summary
-        url_summary = f"https://stats.now.ohsome.org/api/stats/{hashtag}?startdate={start_date_obj.isoformat()}Z&enddate={end_date_obj.isoformat()}Z&countries={countries}"
-        summary = requests.get(url_summary)
+            # Topic-wise stats
+            url_topics = f"https://stats.now.ohsome.org/api/topic/{topics}/interval?hashtag={hashtag}&startdate={start_date_obj.isoformat()}Z&enddate={end_date_obj.isoformat()}Z&countries={countries_str}&interval={interval_str}"
+            response_topics = requests.get(url_topics)
+            transformed_data = {}
+            for topic, topic_data in response_topics.json()["result"].items():
+                topic_values = topic_data["value"]
+                start_date = topic_data["startDate"]
+                end_date = topic_data["endDate"]
+                transformed_data[topic] = topic_values
+                transformed_data["startDate"] = start_date
+                transformed_data["endDate"] = end_date
+                transformed_data["region"] = selected_hubs_str
+                transformed_data["hashtag"] = hashtag
 
-        summary_df = pd.DataFrame(summary.json()["result"], index=[0])
-        summary_df["hashtag"] = hashtag
-        summary_df["region"] = selected_hubs_str
-        summary_df["impact_area"] = selected_impact_areas_str
-        summary_df["startDate"] = f"{start_date_obj.isoformat()}Z"
-        summary_df["endDate"] = f"{end_date_obj.isoformat()}Z"
+            df_topic = pd.DataFrame(transformed_data)
+            topic_data_frames.append(df_topic)
 
-        url_summary_topics = f"https://stats.now.ohsome.org/api/topic/{topics}?hashtag={hashtag}&startdate={start_date_obj.isoformat()}Z&enddate={end_date_obj.isoformat()}Z&countries={countries}&interval={interval_str}"
-        response_summary_topics = requests.get(url_summary_topics)
-        for topic, topic_data in response_summary_topics.json()["result"].items():
-            topic_value = topic_data["value"]
-            summary_df[topic] = topic_value
+            # Summary
+            url_summary = f"https://stats.now.ohsome.org/api/stats/{hashtag}?startdate={start_date_obj.isoformat()}Z&enddate={end_date_obj.isoformat()}Z&countries={countries_str}"
+            summary = requests.get(url_summary)
 
-        summary_data_frames.append(summary_df)
+            summary_df = pd.DataFrame(summary.json()["result"], index=[0])
+            summary_df["hashtag"] = hashtag
+            summary_df["region"] = selected_hubs_str
+            summary_df["impact_area"] = selected_impact_areas_str
+            summary_df["startDate"] = f"{start_date_obj.isoformat()}Z"
+            summary_df["endDate"] = f"{end_date_obj.isoformat()}Z"
 
-    final_df = pd.concat(data_frames, ignore_index=True)
+            url_summary_topics = f"https://stats.now.ohsome.org/api/topic/{topics}?hashtag={hashtag}&startdate={start_date_obj.isoformat()}Z&enddate={end_date_obj.isoformat()}Z&countries={countries_str}&interval={interval_str}"
+            response_summary_topics = requests.get(url_summary_topics)
+            for topic, topic_data in response_summary_topics.json()["result"].items():
+                topic_value = topic_data["value"]
+                summary_df[topic] = topic_value
+
+            summary_data_frames.append(summary_df)
+
+    final_df = pd.concat(data_frames, ignore_index=True).drop_duplicates()
     final_topic_df = pd.concat(topic_data_frames, ignore_index=True)
     final_summary_df = pd.concat(summary_data_frames, ignore_index=True)
+
     merged_df = pd.merge(
         final_df,
         final_topic_df,
-        left_on=["startDate", "endDate"],
-        right_on=["startDate", "endDate"],
+        left_on=["startDate", "endDate", "region", "hashtag"],
+        right_on=["startDate", "endDate", "region", "hashtag"],
         how="inner",
     )
+
     primary_fields = ["startDate", "endDate", "hashtag", "region", "impact_area"]
     merged_df = merged_df[
         primary_fields + [col for col in merged_df.columns if col not in primary_fields]
