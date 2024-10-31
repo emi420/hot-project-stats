@@ -2,6 +2,8 @@
 
 This is a Streamlit application that fetches and displays statistics related to HOT (Humanitarian OpenStreetMap Team) projects and hashtagss. The application allows users to select a date range and then copy&paste Id, Name and Hashtag directly from a spreadsheet table, receiving corresponding data from [Ohsome API](https://stats.now.ohsome.org/). Other sources, like HOT Tasking Manager, will be added soon.
 
+<img width="713" alt="Screenshot 2024-10-31 at 12 12 47" src="https://github.com/user-attachments/assets/e871fead-48d7-4678-9b21-bc63b225d846">
+
 ## Prerequisites
 
 Before running the application, make sure you have the following dependencies installed:
