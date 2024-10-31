@@ -1,16 +1,18 @@
 import pandas as pd
 import streamlit as st
 
-from process import HUBS, IMPACT_AREAS, fetch_data, get_interval_options
-
+from process import fetch_data
 
 def main():
-    st.title("HOTOSM Stats")
+    st.title("HOT Projects Stats")
 
-    # Hashtag input
-    hashtag_input = st.text_input(
-        "Hashtag separated by , e.g.: hotosm,missingmaps", value="hotosm"
-    )
+    # Initialize data
+    if 'data' not in st.session_state:
+        st.session_state.data = pd.DataFrame([{
+            "Id": "",
+            "Name": "",
+            "Hashtag": ""
+        }])
 
     # Date and Time Range
     start_date = st.date_input(
@@ -18,50 +20,51 @@ def main():
     )
     end_date = st.date_input("End Date", value=pd.to_datetime("2024-04-30 00:00:00"))
 
-    # Interval options
-    interval_options = get_interval_options()
-    selected_interval = st.selectbox(
-        "Interval", options=[option["label"] for option in interval_options], index=3
-    )
+    st.write("---") 
 
-    # HOT-Priority-Regions
-    selected_hubs = st.multiselect(
-        "HOT-Priority-Regions", options=list(HUBS.keys()), default=list(HUBS.keys())[0]
-    )
-
-    # HOT-Impact-Areas
-    selected_impact_areas = st.multiselect(
-        "HOT-Impact-Areas",
-        options=list(IMPACT_AREAS.keys()),
-        default=list(IMPACT_AREAS.keys())[0],
-    )
-
-    hashtags = [s.strip() for s in hashtag_input.split(",") if s.strip()]
-
-    if st.button("Get Statistics"):
-        with st.spinner("Loading data..."):
-            interval_result, summary_result = fetch_data(
-                hashtags,
-                start_date,
-                end_date,
-                next(
-                    (
-                        option["value"]
-                        for option in interval_options
-                        if option["label"] == selected_interval
-                    ),
-                    "P1M",
+    # Display editable table
+    if len(st.session_state.data) > 0:
+        edited_df = st.data_editor(
+            st.session_state.data, 
+            hide_index=True,
+            num_rows="dynamic",
+            column_config={
+                "Id": st.column_config.Column(
+                    "Id",
+                    width="medium",
+                    required=False,
                 ),
-                selected_hubs,
-                selected_impact_areas,
-            )
+                "Hashtag": st.column_config.Column(
+                    "Hashtag",
+                    width="medium",
+                    required=True,
+                ),
+                "Name": st.column_config.Column(
+                    "Name",
+                    width="medium",
+                    required=False,
+                )
+            }, 
+        )
 
-        st.write("Summary")
-        st.write(summary_result)
+        # Get stats
+        data = []
+        if st.button("Get Statistics", type="primary"):
+            with st.spinner("Loading data..."):
+                for index, row in edited_df.iterrows():
+                    if row["Hashtag"]:
+                        data.append(fetch_data(
+                            row["Name"],
+                            row["Id"],
+                            row["Hashtag"].replace("#", ""),
+                            start_date,
+                            end_date,
+                        ))
 
-        st.write("Interval detail")
-        st.write(interval_result)
-
+        # Display results
+        if data:
+            st.write("Summary")
+            st.write(pd.concat(data, ignore_index=True))
 
 if __name__ == "__main__":
     main()

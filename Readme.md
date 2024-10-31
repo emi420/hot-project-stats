@@ -1,10 +1,6 @@
-# HOT Priority Regions and Impact Areas Stats
+# HOT Projects Stats
 
-This is a Streamlit application that fetches and displays statistics related to HOT (Humanitarian OpenStreetMap Team) priority regions and impact areas. The application allows users to select multiple hashtags, date ranges, intervals, priority regions, and impact areas, and then retrieves the corresponding data from the Ohsome API. https://stats.now.ohsome.org/
-
-<img width="756" alt="image" src="https://github.com/kshitijrajsharma/ohsome-now-stats-multiple-hashtags/assets/36752999/b2f114ec-8fe7-443b-b426-e83e4bbea6dc">
-
-
+This is a Streamlit application that fetches and displays statistics related to HOT (Humanitarian OpenStreetMap Team) projects and hashtagss. The application allows users to select a date range and then copy&paste Id, Name and Hashtag directly from a spreadsheet table, receiving corresponding data from [Ohsome API](https://stats.now.ohsome.org/). Other sources, like HOT Tasking Manager, will be added soon.
 
 ## Prerequisites
 
@@ -19,34 +15,32 @@ You can install the required Python packages using pip:
 ```bash
 pip install pandas streamlit requests
 ```
+
+## Start
+
+```bash
+streamlit run streamlit_app.py
+```
+
 This will start the Streamlit server and open the application in your default web browser.
 
 ## Using the Application
 
-1. **Hashtag Input**: Enter one or more hashtags separated by commas (e.g., `hotosm,missingmaps`). These hashtags will be used to filter the data. Currently one hashtag per project is supported
+1. **Date and Time Range**: Select the start and end dates for the desired date range.
 
-2. **Date and Time Range**: Select the start and end dates for the desired date range.
+2. **Table**: Input Id, Name and Hashtag (required). You can copy&past your data directly from a spreadsheet table.
 
-3. **Interval**: Choose the desired interval for the data (hourly, daily, weekly, monthly, quarterly, or yearly).
-
-4. **HOT-Priority-Regions**: Select one or more HOT priority regions from the dropdown menu. By default, the first region in the list is selected.
-
-5. **HOT-Impact-Areas**: Select one or more HOT impact areas from the dropdown menu. By default, the first impact area in the list is selected.
-
-6. **Get Statistics**: Click the "Get Statistics" button to fetch the data from the Ohsome API based on the selected options.
+3. **Get Statistics**: Click the "Get Statistics" button to fetch the data from the APIs based on the selected options.
 
 The application will display two sections:
 
-- **Summary**: This section shows a summary of the data for the selected hashtags, date range, regions, and impact areas.
-- **Interval Detail**: This section displays detailed data for the selected interval (e.g., hourly, daily, weekly) and other selected options.
-
-## Customization
-
-If you need to customize the application or the data sources, you can modify the `process.py` file, which contains the functions for fetching data from the Ohsome API. The file also includes dictionaries for the available HOT priority regions and impact areas.
+- **Summary**: This section shows a summary of the data for the selected options.
 
 ## Contributing
 
 Contributions to improve the application are welcome. If you find any issues or have suggestions for enhancements, please open an issue or submit a pull request.
 
-## Author 
-Kshitij Raj Sharma
+## Authors 
+
+Emilio Mariscal, based on the [HOT Priority Regions and Impact Areas Stats](https://github.com/kshitijrajsharma/ohsome-now-stats-multiple-hashtags) app by Kshitij Raj Sharma.
+
