@@ -1,5 +1,7 @@
 import pandas as pd
 import streamlit as st
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 from process import fetch_data
 
@@ -9,16 +11,14 @@ def main():
     # Initialize data
     if 'data' not in st.session_state:
         st.session_state.data = pd.DataFrame([{
-            "Id": "",
-            "Name": "",
+            "Project Id (from finance)": "",
+            "Title": "",
             "Hashtag": ""
         }])
 
     # Date and Time Range
-    start_date = st.date_input(
-        "Start Date", value=pd.to_datetime("2023-04-30 00:00:00")
-    )
-    end_date = st.date_input("End Date", value=pd.to_datetime("2024-04-30 00:00:00"))
+    start_date = st.date_input("Start Date", value=datetime.now().replace(day=1)+relativedelta(months=-1))
+    end_date = st.date_input("End Date", value=datetime.now().replace(day=1))
 
     st.write("---") 
 
@@ -39,8 +39,8 @@ def main():
                     width="medium",
                     required=True,
                 ),
-                "Name": st.column_config.Column(
-                    "Name",
+                "Title": st.column_config.Column(
+                    "Title",
                     width="medium",
                     required=False,
                 )
@@ -53,13 +53,14 @@ def main():
             with st.spinner("Loading data..."):
                 for index, row in edited_df.iterrows():
                     if row["Hashtag"]:
-                        data.append(fetch_data(
-                            row["Name"],
-                            row["Id"],
+                        interval_result = fetch_data(
+                            row["Title"],
+                            row["Project Id (from finance)"],
                             row["Hashtag"].replace("#", ""),
                             start_date,
                             end_date,
-                        ))
+                        )
+                        data.append(interval_result)
 
         # Display results
         if data:
