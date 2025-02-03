@@ -13,7 +13,7 @@ def main():
         st.session_state.data = pd.DataFrame([{
             "Project Id (from finance)": "",
             "Title": "",
-            "Hashtag": ""
+            "Hashtags": ""
         }])
 
     # Date and Time Range
@@ -34,8 +34,8 @@ def main():
                     width="medium",
                     required=False,
                 ),
-                "Hashtag": st.column_config.Column(
-                    "Hashtag",
+                "Hashtags": st.column_config.Column(
+                    "Hashtags",
                     width="medium",
                     required=True,
                 ),
@@ -52,11 +52,11 @@ def main():
         if st.button("Get Statistics", type="primary"):
             with st.spinner("Loading data..."):
                 for index, row in edited_df.iterrows():
-                    if row["Hashtag"]:
+                    if row["Hashtags"]:
                         interval_result = fetch_data(
                             row["Title"],
                             row["Project Id (from finance)"],
-                            row["Hashtag"].replace("#", ""),
+                            row["Hashtags"].replace("#", "").replace(" ", ""),
                             start_date,
                             end_date,
                         )
