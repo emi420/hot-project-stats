@@ -1,15 +1,25 @@
+import os
+
+import dotenv
 import pandas as pd
 import requests
 from datetime import datetime
 
-# Tags
-TAGS = "amenity,body_of_water,education,financial,healthcare,lulc,place,poi,commercial,social_facility,wash,waterway"
+dotenv.load_dotenv()
+
+# topics
+TOPICS = ["contributor", "building", "edit", "road", "amenity", "body_of_water",
+          "education", "financial", "healthcare", "lulc", "place",
+          "poi", "commercial", "social_facility", "wash", "waterway"]
 
 # Monthly interval
-INTERVAL="P1M"
+INTERVAL = "P1M"
 
 # Tags labels
 LABELS = {
+    'user': 'Unique Mappers (OSM)',
+    'building': 'Buildings Added',
+    'road': 'KM Roads Added',
     "amenity": "Amenities Added",
     "body_of_water": "Bodies of Water",
     "education": "Educational Facilities",
@@ -25,34 +35,26 @@ LABELS = {
 }
 
 def fetch_data(
-    title, id, hashtags, start_date, end_date
+        title, id, hashtags, start_date, end_date
 ):
     start_date_obj = datetime.combine(start_date, datetime.min.time())
     end_date_obj = datetime.combine(end_date, datetime.max.time())
-    
+
     partial_dfs = []
-    
+
     for hashtag in hashtags.split(","):
-
-        # General stats
-        stats_url = f"https://stats.now.ohsome.org/api/stats/{hashtag}/interval?startdate={start_date_obj.isoformat()}Z&enddate={end_date_obj.isoformat()}Z&interval={INTERVAL}"
-        response_stats = requests.get(stats_url)
-        df_data = response_stats.json()["result"]
-        stats_df = pd.DataFrame(df_data)
-
-        # Stats by tag
-        tags_df = pd.DataFrame([])
-        url = f"https://stats.now.ohsome.org/api/topic/{TAGS}/interval?hashtag={hashtag}&startdate={start_date_obj.isoformat()}Z&enddate={end_date_obj.isoformat()}Z&interval={INTERVAL}"
-        
-        response = requests.get(url)
-        for tag, tag_data in response.json()["result"].items():
-            tags_df[LABELS[tag]] = tag_data["added"]
-            tags_df["startDate"] = tag_data["startDate"]
-            tags_df["endDate"] = tag_data["endDate"]
-
-        # Merge data
-        partial_df = pd.merge(stats_df, tags_df, on=["startDate", "endDate"], how="left")
-        partial_dfs.append(partial_df)
+        topic_df = pd.DataFrame([])
+        url = f"https://api.heigit.org/ohsome-now/v1/stats/interval?hashtag={hashtag}&startdate={start_date_obj.isoformat()}Z&enddate={end_date_obj.isoformat()}Z&interval={INTERVAL}&topics={",".join(TOPICS)}"
+        response = requests.get(url, headers={"Authorization": f"{os.getenv("HEIGIT_TOKEN")}"})
+        result = response.json()["result"]
+        for topic, topic_data in result["topics"].items():
+            if topic == "user":
+                topic_df[LABELS[topic]] = topic_data["value"]
+            elif topic in LABELS.keys():
+                topic_df[LABELS[topic]] = topic_data["added"]
+        topic_df["startDate"] = result["startDate"]
+        topic_df["endDate"] = result["endDate"]
+        partial_dfs.append(topic_df)
 
     # Sum
     response_df = pd.concat(partial_dfs).groupby(['startDate', 'endDate']).sum().reset_index()
@@ -64,17 +66,12 @@ def fetch_data(
     response_df["Project ID (From Finance)"] = id
 
     # Re-order, rename and remove extra columns
-    response_df = response_df.drop('changesets', axis=1)
-    response_df = response_df.drop('edits', axis=1)
     firstColumns = ["Map Data ID", "Project ID (From Finance)", "Title", "Hashtags", "startDate", "endDate"]
     columns = firstColumns + [col for col in response_df.columns if col not in firstColumns]
     response_df = response_df[columns]
     response_df = response_df.rename(columns={
-        'startDate': 'Start Date', 
+        'startDate': 'Start Date',
         'endDate': 'End Date',
-        'users': 'Unique Mappers (OSM)',
-        'buildings': 'Buildings Added',
-        'roads': 'KM Roads Added',
     })
 
     return response_df

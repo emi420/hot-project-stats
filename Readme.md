@@ -1,5 +1,3 @@
-# NOTICE: the OhSome API has changed, this tool isn't working anymore.
-
 # HOT Projects Stats
 
 This is a Streamlit application that fetches and displays statistics related to HOT (Humanitarian OpenStreetMap Team) projects and hashtagss. The application allows users to select a date range and then copy&paste Id, Name and Hashtag directly from a spreadsheet table, receiving corresponding data from [Ohsome API](https://stats.now.ohsome.org/). Other sources, like HOT Tasking Manager, will be added soon.
@@ -21,6 +19,8 @@ You can install the required Python packages using pip:
 ```bash
 pip install pandas streamlit requests
 ```
+
+You also need to supply a `HEIGIT_TOKEN` in a `.env` file at the root of this repository so the tool can authorize itself with HeiGIT's ohsomeNow API.
 
 ## Start
 
